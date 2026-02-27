@@ -1,2 +1,0 @@
-# DUAD
-Ejercicios de Lyfter
