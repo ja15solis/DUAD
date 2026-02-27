@@ -39,7 +39,15 @@ def import_csv_file(students_info,file_path = 'students_info.csv'):
     if os.path.exists(file_path):
         with open(file_path, mode= 'r', encoding= 'utf-8',newline='') as file:
             students_reader = csv.DictReader(file)
-            students_info = list(students_reader) # convert the DictReader object into a list, makes it a list of dictionaries.
+            # convert the DictReader object into a list, makes it a list of dictionaries.
+            students_info_str = list(students_reader) # convert the DictReader object into a list, makes it a list of dictionaries.
+            # change the values to int in a specific list of keys
+            keys_to_change = ['spanish','english','social_studies','science','average']
+            for entry in students_info_str:
+                for key in keys_to_change: #iterate over the list of keys to change
+                    if key in entry: 
+                        entry[key] = float(entry[key])
+
             print("You have successfully imported the information from {file_path}")
             #This is for printing the result of the file import and then return the menu function
             while True:
