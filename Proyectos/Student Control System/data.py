@@ -31,24 +31,24 @@ def save_csv_file(students_info,file_path = 'students_info.csv'):
 
 
 #6
-def import_csv_file(students_info,file_path = 'students_info.csv'):
+def import_csv_file(students_info,file_path = 'DUAD/Proyectos/Student Control System/students_info.csv'):
     clear_screen()
     # Show the option the user selected 
     print("6. Import data via CSV")
     print("-" * 50)
     if os.path.exists(file_path):
-        with open(file_path, mode= 'r', encoding= 'utf-8',newline='') as file:
+        with open(file_path, mode= 'r', encoding='utf-8-sig',newline='') as file:
             students_reader = csv.DictReader(file)
             # convert the DictReader object into a list, makes it a list of dictionaries.
-            students_info_str = list(students_reader) # convert the DictReader object into a list, makes it a list of dictionaries.
+            students_info = list(students_reader) # convert the DictReader object into a list, makes it a list of dictionaries.
             # change the values to int in a specific list of keys
             keys_to_change = ['spanish','english','social_studies','science','average']
-            for entry in students_info_str:
+            for entry in students_info:
                 for key in keys_to_change: #iterate over the list of keys to change
                     if key in entry: 
                         entry[key] = float(entry[key])
 
-            print("You have successfully imported the information from {file_path}")
+            print(f"You have successfully imported the information from {file_path}")
             #This is for printing the result of the file import and then return the menu function
             while True:
                 print("-" * 50)
