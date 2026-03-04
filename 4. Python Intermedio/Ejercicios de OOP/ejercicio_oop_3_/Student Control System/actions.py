@@ -7,6 +7,19 @@ def clear_screen():
     #Clears the screen and the terminal
     os.system('clear' if os.name != 'nt' else 'cls')
 
+
+# Student object
+class Student():
+    def __init__(self,name,section,spanish,english,social_studies,science):
+        self.name = name
+        self.section = section
+        self.spanish = spanish
+        self.english = english
+        self.social_studies = social_studies
+        self.science = science
+        self.average = (spanish + english + social_studies + science)/4
+
+
 #1
 def add_student_info(students_info):
     clear_screen()
@@ -71,10 +84,12 @@ def add_student_info(students_info):
                     raise ValueError()
             except ValueError as error:
                 print("Please enter a valid number from 1 to 100")
-        # Calculating the Average for each student
-        new_entry["average"] = (spanish + english + social_studies + science)/4
+
+        # Creating a Student object unpacking the dictionary
+        entry = Student(**new_entry)
+
         print("-" * 50)
-        students_info.append(new_entry)
+        students_info.append(entry)
         print(f"You have successfully added the \" {name}\" info!")
 
         #Asking fot another record
@@ -97,7 +112,8 @@ def print_students_info(students_info):
         print("The list is empty please enter information manually (1) or via CSV (6)")
     else:
         # printing in a nice format
-        print(json.dumps(students_info, indent=4, sort_keys=False))
+        json_student = [student.__dict__ for student in students_info] #creating a list of dictionaries based in my class Student
+        print(json.dumps(json_student, indent=4, sort_keys=False))
     #This is for printing the information and then return the menu function once the user have seen the information
     while True:
         print("-" * 50)
@@ -115,14 +131,14 @@ def top_3_students (students_info):
     print("3. Top 3 Students")
     print("-" * 50)
     # this is not a copy, any pop would affect the students info:
-    top_3 = sorted(students_info, key=lambda x: x['average'], reverse=True)[:3]
+    top_3 = sorted(students_info, key=lambda x: x.average, reverse=True)[:3] #changing the [] to . because is no longer a dict
     #new list of dictionaries containing the top 3 students
     top_3_general_info = []
     for student in top_3:
         #creating a new dict containing only the info we want
         clean_student = {
-        "name": student["name"],
-        "average": student["average"]
+        "name": student.name,
+        "average": student.average
         }
         top_3_general_info.append(clean_student)
     # printing the result in a nice format
@@ -146,7 +162,7 @@ def average_grade_all_students (students_info):
     #list of all average records of the students
     list_of_averages = []
     for student in students_info:
-        average = student["average"]
+        average = student.average
         list_of_averages.append(average)
     #calculating the average for the list values
     general_average = sum(list_of_averages)/len(list_of_averages)
