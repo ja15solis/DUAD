@@ -24,8 +24,7 @@ class SavingAccount(BankAccount):
             print(f"After sending ${amount}, the balance is ${self.balance}")
             return self.balance
         else:
-            print(f"After sending ${amount}, the balance will be lower than the minimum allowed. The transaction cannot be executed. ")
-            return self.balance
+            raise ValueError (f"After sending ${amount}, the balance will be lower than the minimum allowed. The transaction cannot be executed.")
 
 print("-"*50)
 #Normal Account
