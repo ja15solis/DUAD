@@ -1,0 +1,17 @@
+multiple inheritance can be useful in several scenarios:
+
+1. DRY (don't repeat yourself):
+Reutilice the code you've previously created, by inhering the method from the parent class.
+
+2. Mixins: When an object is several things for example: animal, mammal and cat.
+This can inherit from a class and also have extra capabilities by mixing classes.
+
+3. Combining diverse functionality: 
+it allows inherit from several parent classes and create a unique type of object selecting the methods and attributes from classes that are unrelated (parent classes)
+
+Considerations:
+1. super() function is essential in complex inheritance avoiding redundant calls and potential issues like the "diamond problem"
+
+2. Method Resolution Order (MRO): 
+When method names conflict across multiple parent classes, Python uses a specific order to search for the method, known as the Method Resolution Order. 
+The __mro__ attribute or mro() method can be used to view this order.
