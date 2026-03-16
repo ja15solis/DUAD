@@ -3,7 +3,7 @@ def print_params(func):
     def wrapper(*args):
         print(f"Parameters: {args}")
         result = func(*args)
-        print(f"The max number in the parameters is: {result}")
+        print(f"Return: {result}")
     return wrapper
 
 @print_params

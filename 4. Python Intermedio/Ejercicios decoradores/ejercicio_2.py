@@ -2,31 +2,31 @@
 def check_number(func):
     def wrapper(*args):
         try:
-            for arg in args:
-                float(arg)
-            print(f"Parameters: {args}")
-            result = func(*args)
-            print(f"The max number in the parameters is: {result}")
+            new_args = list(map(float, args))  #trying to convert every value to float
+            return func(*new_args) #asterisk to unpack the list of arguments
         except (ValueError,TypeError):
-                return "There is a parameter that is not a number"
+                raise ValueError("All parameters must be numbers")
     return wrapper
 
 @check_number
 def get_max_number(*args):
-    return max([float(arg) for arg in args])
+    return max(args)
 
 
 print("-" * 47)
 print("Example without error:")
 print(" - " * 16)
 number = get_max_number(1231,2234,23,4234,545)
+print(number)
 
 print("-" * 47)
 print("Example without error:")
 print(" - " * 16)
 number = get_max_number(1231,2234,23,"4234",545)
+print(number)
 
 print("-" * 47)
 print("Example with error:")
 print(" - " * 16)
-print(get_max_number(1231,2234,"23c",4234,545))
+number = get_max_number(1231,2234,"23c",4234,545)
+print(number)

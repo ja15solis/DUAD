@@ -20,27 +20,26 @@ class User():
 def is_under_age(func):
     def wrapper (user_object,*args): #user object
         if user_object.age < 18:
-            return "The user can't be created, is underage"
+            return "The account can't be created, is underage"
         else: 
             return func(user_object,*args)
     return wrapper # if you dont put this return wrapper the decorator returns None
 
 @is_under_age
-class BankAccount(User): # User the class
-    def __init__(self, user_object): # User the object
-        self.name = user_object.name
-        print(f"Account created successfully for {self.name}" )
+def create_account(user): # User the class
+    return (f"Account created successfully for {user.name}" )
 
 print("-" * 47)
 print("Example underage:")
 print(" - " * 16)
 javier = User("Javier",'2009-01-22')
-result_javier = BankAccount(javier)
-print(result_javier)
+account_javier = create_account(javier)
+print(account_javier)
 
 
 print("-" * 47)
 print("Example acceptable:")
 print(" - " * 16)
 amanda = User("Amanda",'2003-01-22')
-BankAccount(amanda)
+account_amanda = create_account(amanda)
+print(account_amanda)
