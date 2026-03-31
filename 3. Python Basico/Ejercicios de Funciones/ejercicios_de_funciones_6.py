@@ -1,6 +1,6 @@
-disordered_string = "javier-solis-prieto-ingeniero"
-
 def order_string(text):
+    if not isinstance(text, str):
+        raise TypeError
     string_list = text.split("-")
     string_list.sort()
     ordered_text = ""
@@ -12,4 +12,6 @@ def order_string(text):
             ordered_text += value + "-"
     return ordered_text
 
+
+disordered_string = "javier-solis-prieto-ingeniero"
 print(order_string(disordered_string))
