@@ -1,6 +1,8 @@
 string_test = "I love Traveling"
 
 def count_upper_low_cases(text):
+    if not isinstance(text, str):
+        raise TypeError
     upper_cases = 0
     lower_cases = 0
 
@@ -9,8 +11,8 @@ def count_upper_low_cases(text):
             upper_cases += 1
         else:
             lower_cases += 1
+    return {"upper_cases":upper_cases,"lower_cases":lower_cases}
 
-    return  f"There's {upper_cases} upper cases and {lower_cases} lower cases"
 
-
-print(count_upper_low_cases(string_test))
+result = count_upper_low_cases(string_test)
+print( f"There are {result["upper_cases"]} upper cases and {result["lower_cases"]} lower cases")
