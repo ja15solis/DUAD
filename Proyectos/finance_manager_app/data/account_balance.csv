@@ -1,0 +1,8 @@
+movement_type,title,amount,category
+income,first income,1230.0,salary
+expense,first expense,500.0,food
+expense,new expense,100.0,Games
+income,second salary,5000.0,Salary
+expense,Another game,400.0,Games
+expense,Phone plan,300.0,Phone
+income,Sellings,3000.0,Games
