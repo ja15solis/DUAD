@@ -10,7 +10,6 @@ class Movement():
         self.title = title
         self.amount = amount
         self.category = category
-        pass
 
 
 
