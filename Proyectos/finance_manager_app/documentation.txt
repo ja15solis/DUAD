@@ -1,0 +1,7 @@
+Requirements, format and how to run the program:
+1. verify yor python version: should be python 3.10 or newer
+2. Install the required packages (run: "pip install -r requirements.txt" in the terminal)
+3. Check the csv format (if you want to import information and not enter it one by one in the UI): 
+    categories.csv must include "name" header
+    account_balance.csv must include "movement_type","title","amount" and "category" headers
+4. Run the program: python main.py

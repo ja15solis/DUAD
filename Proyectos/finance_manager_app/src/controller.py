@@ -6,6 +6,8 @@ import src.database as database
 
 #movements
 def headers_data(list_objects):
+    if not list_objects:
+        return []
     dict_movements = [o.__dict__ for o in list_objects]
     headers_list = list(dict_movements[0].keys())
     headers = [h.replace("_"," ").capitalize() for h in headers_list]
@@ -13,6 +15,8 @@ def headers_data(list_objects):
 
 
 def update_data(list_objects):
+    if not list_objects:
+        return []
     dict_movements = [o.__dict__ for o in list_objects]
     headers = list(dict_movements[0].keys())
     return [[d.get(h) for h in headers] for d in dict_movements]
@@ -33,7 +37,7 @@ def menu(categories_path,movements_path):
         [sg.Table(key= "-TABLE-",values=update_data(movements), headings = headers_data(movements), auto_size_columns=True, justification='left')],
         [sg.Button("Expense",size=btn_size),sg.Button("Income",size=btn_size)],
         [sg.Button("New Category",size=btn_size),sg.Button("Quit",size=btn_size)],
-        [sg.Text(size=(40,1),key="-OUTPUT-")],
+        [sg.Text(size=(60,1),key="-OUTPUT-")],
     ]
     window_menu = sg.Window("Personal Finance Manager",layout_menu)
 
@@ -41,7 +45,11 @@ def menu(categories_path,movements_path):
         event, values = window_menu.read()
         if event == sg.WINDOW_CLOSED or event == "Quit":
             break
-        elif event == "Expense":
+        elif event == "Expense" and [c.name for c in categories] == []:
+            window_menu["-OUTPUT-"].update("Please enter a category because it's required for the expense entry.")
+        elif event == "Income" and [c.name for c in categories] == []:
+            window_menu["-OUTPUT-"].update("Please enter a category because it's required for the income entry.")
+        elif event == "Expense" and [c.name for c in categories] != []:
             expense = views.show_expense_window(categories)
             if expense is None:
                 continue
@@ -51,7 +59,7 @@ def menu(categories_path,movements_path):
             window_menu["-TABLE-"].update(values = update_data(movements))
             #objects,file_path,object_type
             database.save_csv_file(movements,movements_path,"movements")
-        elif event == "Income":
+        elif event == "Income" and [c.name for c in categories] != []:
             income = views.show_income_window(categories)
             if income is None:
                 continue

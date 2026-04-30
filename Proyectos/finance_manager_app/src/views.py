@@ -1,31 +1,6 @@
 import FreeSimpleGUI as sg
-import src.models as models
-
-
-def show_menu_window():
-    btn_size = (20,1)
-    layout_menu = [
-        [sg.Text(f"The current balance is: ")], #value_balance
-        [sg.Button("Expense",size=btn_size),sg.Button("Income",size=btn_size)],
-        [sg.Button("New Category",size=btn_size),sg.Button("Quit",size=btn_size)],
-        [sg.Text(size=(40,1),key="-OUTPUT-")],
-    ]
-    window_menu = sg.Window("Personal Finance Manager",layout_menu)
-
-
-
-    while True:
-        event, values = window_menu.read()
-
-        if event == sg.WINDOW_CLOSED or event == "Quit":
-            break
-        elif event == "Expense":
-            show_expense_window()
-        elif event == "Income":
-            show_income_window()
-        elif event == "New Category":
-            show_category_window()
-    window_menu.close()
+from src import models as models
+from src import validation
 
 def show_expense_window(categories):
     btn_size = (20,1)
@@ -44,22 +19,28 @@ def show_expense_window(categories):
         if event == sg.WINDOW_CLOSED or event == "Cancel":
             break
         elif event == "Accept":
-            try:
-                if values["-EX_CATEGORY_INPUT-"] == []:
-                    window_expense["-EX_OUTPUT_MESSAGE-"].update("Please in enter a category")
-                else:
-                    expense = {
-                    "movement_type": "expense",
-                    "title": values["-EX_TITLE_INPUT-"],
-                    "amount": float(values["-EX_AMOUNT_INPUT-"]),
-                    "category": values["-EX_CATEGORY_INPUT-"]
-                    }
-                    window_expense.close()
-                    return models.Movement(*expense.values()) #unpacking the list*
-            except ValueError as error:
-                window_expense["-EX_OUTPUT_MESSAGE-"].update("Please in enter a valid number in amount")
-    window_expense.close()
-    return None
+            movement, error = validation.validate_movement(
+                values,
+                key_map={
+                    "title": "-EX_TITLE_INPUT-",
+                    "amount": "-EX_AMOUNT_INPUT-",
+                    "category": "-EX_CATEGORY_INPUT-"
+                },
+                movement_type="expense"
+            )
+            if error:
+                match str(error):
+                    case "Title":
+                        window_expense["-EX_OUTPUT_MESSAGE-"].update("Please enter a Title")
+                    case "Amount":
+                        window_expense["-EX_OUTPUT_MESSAGE-"].update("Please in enter a valid number in Amount")
+                    case "Category":
+                        window_expense["-EX_OUTPUT_MESSAGE-"].update("Please in enter a Category")
+                    case "Invalid Number":
+                        window_expense["-EX_OUTPUT_MESSAGE-"].update("Please enter a positive value for Amount")
+            else:
+                window_expense.close()
+                return movement
 
 
 def show_income_window(categories):
@@ -79,28 +60,34 @@ def show_income_window(categories):
         if event == sg.WINDOW_CLOSED or event == "Cancel":
             break
         elif event == "Accept":
-            try:
-                if values["-IN_CATEGORY_INPUT-"] == []:
-                    window_income["-IN_OUTPUT_MESSAGE-"].update("Please in enter a category")
-                else:
-                    income = {
-                    "movement_type": "income",
-                    "title": values["-IN_TITLE_INPUT-"],
-                    "amount": float(values["-IN_AMOUNT_INPUT-"]),
-                    "category": values["-IN_CATEGORY_INPUT-"],
-                    }
-                    window_income.close()
-                    return models.Movement(*income.values()) #unpacking the list*
-            except ValueError as error:
-                window_income["-IN_OUTPUT_MESSAGE-"].update("Please in enter a valid number in amount")
-    window_income.close()
-    return None
+            movement, error = validation.validate_movement(
+                values,
+                key_map={
+                    "title": "-IN_TITLE_INPUT-",
+                    "amount": "-IN_AMOUNT_INPUT-",
+                    "category": "-IN_CATEGORY_INPUT-"
+                },
+                movement_type="income"
+            )
+            if error:
+                match str(error):
+                    case "Title":
+                        window_income["-IN_OUTPUT_MESSAGE-"].update("Please enter a Title")
+                    case "Amount":
+                        window_income["-IN_OUTPUT_MESSAGE-"].update("Please in enter a valid number in Amount")
+                    case "Category":
+                        window_income["-IN_OUTPUT_MESSAGE-"].update("Please in enter a Category")
+                    case "Invalid Number":
+                        window_income["-IN_OUTPUT_MESSAGE-"].update("Please enter a positive value for Amount")
+            else:
+                window_income.close()
+                return movement
 
 
 def show_category_window(categories):
     btn_size = (20,1)
     layout_category = [
-        [sg.Text("Please create a category that is not in the options already: ")],
+        [sg.Text("Please create a new category: ")],
         [sg.Text("Categories: ",size=(10,1)), sg.Combo([c.name for c in categories], key='-CATEGORY-',size=(30,1))],
         [sg.Text("New Category: ",size=(10,1)),sg.Input(key="-INPUT-",size=(30,1))],
         [sg.Text(size=(40,1),key="-OUTPUT-")],
