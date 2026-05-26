@@ -1,13 +1,13 @@
 -- Tables
-CREATE TABLE books (
-id INTEGER PRIMARY KEY, --"INTEGER" To be added automatically 
-name VARCHAR(50) NOT NULL,
-author INT REFERENCES authors (id)
-);
-
 CREATE TABLE authors (
 id INTEGER PRIMARY KEY, --"INTEGER" To be added automatically 
 name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE books (
+id INTEGER PRIMARY KEY, --"INTEGER" To be added automatically 
+name VARCHAR(50) NOT NULL,
+author_id INT REFERENCES authors (id)
 );
 
 CREATE TABLE customers (

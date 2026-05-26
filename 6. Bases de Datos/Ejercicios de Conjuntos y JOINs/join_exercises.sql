@@ -5,14 +5,14 @@ SELECT
     authors.name as author 
 FROM books
 LEFT JOIN authors 
-    ON authors.id = books.author
+    ON authors.id = books.author_id
 ;
 
 --2 
 SELECT 
     books.name as book
 FROM books
-WHERE author IS NULL 
+WHERE author_id IS NULL 
 ;
 
 --3
@@ -20,8 +20,8 @@ SELECT
     authors.name as author 
 FROM authors
 LEFT JOIN books
-    ON authors.id = books.author
-WHERE books.author IS NULL
+    ON authors.id = books.author_id
+WHERE books.author_id IS NULL
 ;
 
 --4
