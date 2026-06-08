@@ -2,12 +2,19 @@
 DO $$
 DECLARE
     v_bill_id INT;
+    v_bill_status VARCHAR(25);
     v_product RECORD; --this can hold any data row structure 
 BEGIN
     -- 1. verify bill exists
-    SELECT id INTO v_bill_id
+    SELECT 
+        id INTO v_bill_id, 
+        status INTO v_bill_status,
     FROM bills
     WHERE id = 1; --bill returned
+
+    IF v_bill_status = 'Returned'
+        THEN RAISE EXCEPTION 'The bill has already been returned.';
+    END IF;
 
     IF v_bill_id IS NULL THEN
         RAISE EXCEPTION 'The bill does not exist';
