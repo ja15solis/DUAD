@@ -7,18 +7,19 @@ DECLARE
 BEGIN
     -- 1. verify bill exists
     SELECT 
-        id INTO v_bill_id, 
-        status INTO v_bill_status,
+        id, status
+        INTO v_bill_id, v_bill_status
     FROM bills
     WHERE id = 1; --bill returned
-
-    IF v_bill_status = 'Returned'
-        THEN RAISE EXCEPTION 'The bill has already been returned.';
-    END IF;
 
     IF v_bill_id IS NULL THEN
         RAISE EXCEPTION 'The bill does not exist';
     END IF;
+
+    IF v_bill_status = 'Returned'
+        THEN RAISE EXCEPTION 'The bill has already been returned.';
+    END IF;
+    
     -- 2. Return the quantity to the stock
     FOR v_product IN 
         (

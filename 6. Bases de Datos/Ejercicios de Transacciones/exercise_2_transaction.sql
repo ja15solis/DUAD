@@ -35,8 +35,8 @@ BEGIN
         FROM products
         WHERE id = v_item.product_id;
 
-        IF IFNULL(v_stock,0) < v_item.quantity --IFNULL(v_stock,0) for products not in the DATABASE
-            THEN RAISE EXCEPTION 'No stock in this product id: %', v_product_id;
+        IF COALESCE(v_stock,0) < v_item.quantity --IFNULL(v_stock,0) for products not in the DATABASE
+            THEN RAISE EXCEPTION 'No stock in this product id: %', id; --v_item.product_id;
         END IF;
     END LOOP;
 
