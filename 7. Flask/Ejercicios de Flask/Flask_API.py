@@ -93,7 +93,7 @@ def tasks():
             if any (t["task_id"] == task_to_delete for t in tasks_loaded):
                 tasks = [t for t in tasks_loaded if t["task_id"] != task_to_delete]
             else:
-                raise ValueError(f"The task id {task_to_delete} doesn't exist. First a task with that value has to be created, try POST method.")
+                raise ValueError(f"The task id {task_to_delete} doesn't exist. Use POST to create it.")
             #write in the file
             save_tasks(tasks)
             return jsonify(tasks),200 #status code "modified"
