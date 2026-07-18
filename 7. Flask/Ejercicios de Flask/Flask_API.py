@@ -4,23 +4,26 @@ from flask import Flask, jsonify, request
 
 
 app = Flask(__name__)
-BASE_DIR = Path(__file__).resolve().parent #path of the folder containing this .py
-file_path = BASE_DIR/"tasks.json"
+BASE_DIR = Path(__file__).resolve().parent  # path of the folder containing this .py
+file_path = BASE_DIR / "tasks.json"
+
 
 def load_tasks():
     try:
-        with open (file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, 'r', encoding='utf-8') as file:
             return json.load(file)
     except FileNotFoundError:
         return []
-    
+
+
 def save_tasks(tasks):
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(tasks, file, indent=4, ensure_ascii=False)
 
+
 def body_validation():
-    required_tasks_fields = ["task_id","title","description","status"]
-    status_values = ["Not Started","In Progress","Completed"]
+    required_tasks_fields = ["task_id", "title", "description", "status"]
+    status_values = ["Not Started", "In Progress", "Completed"]
 
     for field in required_tasks_fields:
         if field not in request.json:
@@ -29,79 +32,74 @@ def body_validation():
             raise ValueError(f"The status must be one of the following: 'Not Started', 'In Progress' or 'Completed'.")
         if not request.json[field]:
             raise ValueError(f"The {field} must have a value.")
+    # Validation for id
+    try:
+        task_id = int(request.json["task_id"])
+    except (ValueError, TypeError):
+        raise ValueError(f"The task_id must be a valid integer.")
     # create new task
-    return {field : request.json[field] for field in required_tasks_fields}
+    new_task = {field: request.json[field] for field in required_tasks_fields}
+    new_task["task_id"] = task_id 
+    return new_task
 
-@app.route("/tasks",methods = ["GET","POST","PUT","DELETE"])
-def tasks():
-    if request.method == "GET":
-        tasks = load_tasks() #if not found will return there
-        status_filter = request.args.get("status")
-        if status_filter:
-            filtered_tasks = list(
-                filter(lambda tasks: tasks["status"].title() == status_filter.title(), tasks)
-            )
-            return jsonify(filtered_tasks),200
-        if not tasks:
-            return jsonify({"message": 'file nor found or there are no tasks.'}),200
-        return jsonify(tasks),200
 
-    elif request.method == "POST":
-        try:
-            request_json = request.get_json()
-            if not request_json:
-                return jsonify({"message": "Missing JSON body"}), 400
-            new_task = body_validation()
-            #load tasks and append the new one
-            tasks = load_tasks()
-            if any (t["task_id"] == new_task["task_id"] for t in tasks):
-                raise ValueError(f"The task id {new_task["task_id"]} is already created. If you want to modify it, try PUT method.")
-            else:
-                tasks.append(new_task)
-            #write in the file
-            save_tasks(tasks)
-            return jsonify(tasks),201 #status code "created"
-        except ValueError as ex:
-            return jsonify(message=str(ex)), 400
+@app.route("/tasks", methods=["GET"])
+def get_tasks():
+    tasks = load_tasks()  # if not found will return there
+    status_filter = request.args.get("status")
+    if status_filter:
+        filtered_tasks = list(
+            filter(lambda tasks: tasks["status"].title() == status_filter.title(), tasks)
+        )
+        return jsonify(filtered_tasks), 200
+    if not tasks:
+        return jsonify({"message": 'file not found or there are no tasks.'}), 200
+    return jsonify(tasks), 200
 
-    elif request.method == "PUT":
-        try:
-            request_json = request.get_json()
-            if not request_json:
-                return jsonify({"message": "Missing JSON body"}), 400
-            # create new task
-            new_task = body_validation()
-            #load tasks and append the new one
-            tasks = load_tasks()
-            if any (t["task_id"] == new_task["task_id"] for t in tasks):
-                for t in tasks:
-                    if t["task_id"] == new_task["task_id"]:
-                        tasks_index = tasks.index(t)
-                tasks[tasks_index]=new_task
-            else:
-                raise ValueError(f"The task id {new_task["task_id"]} doesn't exist. If you want to create it, try POST method.")
-            #write in the file
-            save_tasks(tasks)
-            return jsonify(tasks),200 #status code "modified"
-        except ValueError as ex:
-            return jsonify(message=str(ex)), 400
 
-    elif request.method == "DELETE":
-        try:
-            task_to_delete = int(request.args.get("task_id"))
-            tasks_loaded = load_tasks()
-            if any (t["task_id"] == task_to_delete for t in tasks_loaded):
-                tasks = [t for t in tasks_loaded if t["task_id"] != task_to_delete]
-            else:
-                raise ValueError(f"The task id {task_to_delete} doesn't exist. Use POST to create it.")
-            #write in the file
-            save_tasks(tasks)
-            return jsonify(tasks),200 #status code "modified"
-        except ValueError as ex:
-            return jsonify(message=str(ex)), 400
-        except TypeError:
-            return jsonify(message="task_id must be a valid number."), 400
+@app.route("/tasks", methods=["POST"])
+def create_task():
+    try:
+        request_json = request.get_json()
+        if not request_json:
+            return jsonify({"message": "Missing JSON body"}), 400
+        new_task = body_validation()
+        # load tasks and append the new one
+        tasks = load_tasks()
+        if any(t["task_id"] == new_task["task_id"] for t in tasks):
+            raise ValueError(f"The task id {new_task['task_id']} is already created. If you want to modify it, try PUT method.")
+        else:
+            tasks.append(new_task)
+        # write in the file
+        save_tasks(tasks)
+        return jsonify(tasks), 201  # status code "created"
+    except ValueError as ex:
+        return jsonify(message=str(ex)), 400
 
+
+@app.route("/tasks", methods=["PUT"])
+def update_task():
+    try:
+        request_json = request.get_json()
+        if not request_json:
+            return jsonify({"message": "Missing JSON body"}), 400
+        # create new task
+        new_task = body_validation()
+        # load tasks and append the new one
+        tasks = load_tasks()
+        if any(t["task_id"] == new_task["task_id"] for t in tasks):
+            for t in tasks:
+                if t["task_id"] == new_task["task_id"]:
+                    tasks_index = tasks.index(t)
+            tasks[tasks_index] = new_task
+        else:
+            raise ValueError(f"The task id {new_task['task_id']} doesn't exist. Use POST method to create it.")
+        # write in the file
+        save_tasks(tasks)
+        return jsonify(tasks), 200  # status code "modified"
+    except ValueError as ex:
+        return jsonify(message=str(ex)), 400
+    
 @app.route("/tasks/<int:task_id>", methods=["DELETE"])
 def delete_task(task_id):
     try:
@@ -114,8 +112,7 @@ def delete_task(task_id):
         return jsonify(tasks), 200
     except ValueError as ex:
         return jsonify(message=str(ex)), 400
-    
+
+
 if __name__ == "__main__":
-    app.run(host = "localhost", debug=True)
-
-
+    app.run(host="localhost", debug=True)
