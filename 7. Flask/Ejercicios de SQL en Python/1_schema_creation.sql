@@ -1,1 +1,0 @@
-CREATE SCHEMA IF NOT EXISTS lyfter_car_rental;

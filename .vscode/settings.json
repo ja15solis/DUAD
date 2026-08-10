@@ -6,17 +6,6 @@
             "server": "localhost",
             "port": 5432,
             "driver": "PostgreSQL",
-            "name": "postgres",
-            "database": "postgres",
-            "username": "postgres",
-            "password": "Imperial0515"
-        },
-        {
-            "ssh": "Disabled",
-            "previewLimit": 50,
-            "server": "localhost",
-            "port": 5432,
-            "driver": "PostgreSQL",
             "name": "Javier Desktop",
             "database": "postgres",
             "username": "postgres"
