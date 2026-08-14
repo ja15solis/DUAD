@@ -21,8 +21,8 @@ db_manager.execute_query(
         id SERIAL PRIMARY KEY,
         name VARCHAR(40) NOT NULL,
         email VARCHAR(40) NOT NULL,
-        username VARCHAR(25) NOT NULL,
-        password VARCHAR(20) NOT NULL,
+        username VARCHAR(30) NOT NULL,
+        password VARCHAR(25) NOT NULL,
         birthdate DATE NOT NULL DEFAULT CURRENT_DATE,
         account_status VARCHAR(20) NOT NULL DEFAULT 'Active'
     );
@@ -31,11 +31,15 @@ db_manager.execute_query(
 
 db_manager.execute_query(
     """
-    TRUNCATE TABLE lyfter_car_rental.users RESTART IDENTITY;
+    TRUNCATE TABLE 
+        lyfter_car_rental.rentals,
+        lyfter_car_rental.users,
+        lyfter_car_rental.cars
+    RESTART IDENTITY CASCADE;
     """
 )
 
-with open(BASE_DIR / "data" / "users_data.csv", newline="", encoding="utf-8") as file:
+with open(BASE_DIR / "data" / "users_data.csv", newline="", encoding="utf-8-sig") as file:
     reader = csv.DictReader(file)
     for row in reader:
         birthdate = datetime.strptime(row["birthdate"], "%d/%m/%Y").date()
@@ -52,21 +56,15 @@ db_manager.execute_query(
     """
     CREATE TABLE IF NOT EXISTS lyfter_car_rental.cars (
     id SERIAL PRIMARY KEY, 
-    brand VARCHAR(20) NOT NULL,
-    model VARCHAR(25) NOT NULL,
+    brand VARCHAR(25) NOT NULL,
+    model VARCHAR(30) NOT NULL,
     manufacture_year INT NOT NULL DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
-    car_status VARCHAR(20) NOT NULL DEFAULT 'Available' 
+    car_status VARCHAR(25) NOT NULL DEFAULT 'Available' 
     );
     """
 )
 
-db_manager.execute_query(
-    """
-    TRUNCATE TABLE lyfter_car_rental.cars RESTART IDENTITY;
-    """
-)
-
-with open(BASE_DIR / "data"  / "car_data.csv", newline="", encoding="utf-8") as file:
+with open(BASE_DIR / "data"  / "car_data.csv", newline="", encoding="utf-8-sig") as file:
     reader = csv.DictReader(file)
     for row in reader:
         db_manager.execute_query(
@@ -80,14 +78,27 @@ with open(BASE_DIR / "data"  / "car_data.csv", newline="", encoding="utf-8") as 
 
 db_manager.execute_query(
     """
-    CREATE TABLE lyfter_car_rental.rentals (
+    CREATE TABLE IF NOT EXISTS lyfter_car_rental.rentals (
     id SERIAL PRIMARY KEY, 
     user_id INT NOT NULL REFERENCES lyfter_car_rental.users(id),
     car_id INT NOT NULL REFERENCES lyfter_car_rental.cars(id),
     rental_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    rental_status VARCHAR(20) NOT NULL DEFAULT 'Active'
+    rental_status VARCHAR(25) NOT NULL DEFAULT 'Active'
     );
     """
+)
+
+
+with open(BASE_DIR / "data"  / "cross_table.csv", newline="", encoding="utf-8-sig") as file:
+    reader = csv.DictReader(file)
+    for row in reader:
+        db_manager.execute_query(
+            """
+
+            INSERT INTO lyfter_car_rental.rentals (user_id, car_id)
+            VALUES (%s, %s);           
+            """,
+            row["user_id"], row["car_id"]
 )
 
 db_manager.close_connection()
