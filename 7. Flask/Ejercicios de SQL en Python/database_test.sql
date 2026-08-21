@@ -1,21 +1,21 @@
 -- 1. Un script que agregue un usuario nuevo
 
 INSERT INTO lyfter_car_rental.users (name, email, username, password, birthdate)
-            VALUES ("Javier Solis", "javier@email.com", "javiersolis", "1239487ahdf9", "1997-05-15");           
+            VALUES ('Javier Solis', 'javier@email.com', 'javiersolis', '1239487ahdf9', '1997-05-15');           
 
 -- 2. Un script que agregue un automovil nuevo
 
 INSERT INTO lyfter_car_rental.cars (brand, model, manufacture_year)
-            VALUES ("Toyota", "Corolla", 2016);    
+            VALUES ('Toyota', 'Corolla', 2016);    
 
 -- 3. Un script que cambie el estado de un usuario
 UPDATE lyfter_car_rental.users
-SET account_status = "Inactive"
-WHERE name="Javier Solis";
+SET account_status = 'Inactive'
+WHERE name='Javier Solis';
 
 --Un script que cambie el estado de un automovil
 UPDATE lyfter_car_rental.cars
-SET car_status = "Maintenance"
+SET car_status = 'Maintenance'
 WHERE id = 101;
 
 -- 4. Un script que genere un alquiler nuevo con los datos de un usuario y un automovil
@@ -54,7 +54,7 @@ BEGIN
     RAISE NOTICE 'Rental created successfully.';
 
     UPDATE lyfter_car_rental.cars
-    SET car_status = "Rented"
+    SET car_status = 'Rented'
     WHERE id = v_car_id;
 END;
 $$;
@@ -72,7 +72,7 @@ BEGIN
     -- Check if rental exists AND is Active
     IF NOT EXISTS (
         SELECT 1
-        FROM lyfter_car_rental.rental
+        FROM lyfter_car_rental.rentals
         WHERE id = v_rental_id
         AND rental_status = 'Active'
     ) THEN
@@ -81,17 +81,17 @@ BEGIN
     END IF;
 
     -- Complete the rental
-    UPDATE lyfter_car_rental.rental
-    SET car_status = "Inactive"
+    UPDATE lyfter_car_rental.rentals
+    SET rental_status = 'Completed'
     WHERE id = v_rental_id;
 
     SELECT car_id INTO v_car_id
-    FROM lyfter_car_rental.rental
+    FROM lyfter_car_rental.rentals
     WHERE id = v_rental_id;
 
     -- Change the car status
     UPDATE lyfter_car_rental.cars
-    SET car_status = "Available"
+    SET car_status = 'Available'
     WHERE id = v_car_id;
 
     RAISE NOTICE 'Rental finished successfully.';
@@ -102,14 +102,14 @@ $$;
 DO $$
 DECLARE
     v_car_id INT := 1;
-    v_car_status = "Maintenance";
+    v_car_status VARCHAR(25) := 'Maintenance';
 BEGIN
 
     -- Check if the car is currently rented
     IF EXISTS (
         SELECT 1
-        FROM lyfter_car_rental.rental
-        WHERE car_id = v_rental_id
+        FROM lyfter_car_rental.rentals
+        WHERE car_id = v_car_id
         AND rental_status = 'Active'
     ) THEN
         RAISE NOTICE 'Car not found or with active rental, the status of the car can not be changed.';
@@ -127,7 +127,7 @@ $$;
 
 -- 7. Un script que obtenga todos los automoviles alquilados, y otro que obtenga todos los disponibles.
 SELECT * FROM lyfter_car_rental.cars
-WHERE car_status = "Rented";
+WHERE car_status = 'Rented';
 
 SELECT * FROM lyfter_car_rental.cars
-WHERE car_status = "Available";
+WHERE car_status = 'Available';

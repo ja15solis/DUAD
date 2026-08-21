@@ -31,29 +31,6 @@ db_manager.execute_query(
 
 db_manager.execute_query(
     """
-    TRUNCATE TABLE 
-        lyfter_car_rental.rentals,
-        lyfter_car_rental.users,
-        lyfter_car_rental.cars
-    RESTART IDENTITY CASCADE;
-    """
-)
-
-with open(BASE_DIR / "data" / "users_data.csv", newline="", encoding="utf-8-sig") as file:
-    reader = csv.DictReader(file)
-    for row in reader:
-        birthdate = datetime.strptime(row["birthdate"], "%d/%m/%Y").date()
-        db_manager.execute_query(
-            """
-
-            INSERT INTO lyfter_car_rental.users (name, email, username, password, birthdate, account_status)
-            VALUES (%s, %s, %s, %s, %s, %s);           
-            """,
-            row["name"], row["email"], row["username"], row["password"], birthdate, row["account_status"]
-)
-
-db_manager.execute_query(
-    """
     CREATE TABLE IF NOT EXISTS lyfter_car_rental.cars (
     id SERIAL PRIMARY KEY, 
     brand VARCHAR(25) NOT NULL,
@@ -62,18 +39,6 @@ db_manager.execute_query(
     car_status VARCHAR(25) NOT NULL DEFAULT 'Available' 
     );
     """
-)
-
-with open(BASE_DIR / "data"  / "car_data.csv", newline="", encoding="utf-8-sig") as file:
-    reader = csv.DictReader(file)
-    for row in reader:
-        db_manager.execute_query(
-            """
-
-            INSERT INTO lyfter_car_rental.cars (brand, model, manufacture_year, car_status)
-            VALUES (%s, %s, %s, %s);           
-            """,
-            row["brand"], row["model"], row["year"], row["status"]
 )
 
 db_manager.execute_query(
@@ -88,7 +53,44 @@ db_manager.execute_query(
     """
 )
 
+# Clean the tables
+db_manager.execute_query(
+    """
+    TRUNCATE TABLE
+        lyfter_car_rental.rentals,
+        lyfter_car_rental.users,
+        lyfter_car_rental.cars
+    RESTART IDENTITY CASCADE;
+    """
+)
+# Users
+with open(BASE_DIR / "data" / "users_data.csv", newline="", encoding="utf-8-sig") as file:
+    reader = csv.DictReader(file)
+    for row in reader:
+        birthdate = datetime.strptime(row["birthdate"], "%d/%m/%Y").date()
+        db_manager.execute_query(
+            """
 
+            INSERT INTO lyfter_car_rental.users (name, email, username, password, birthdate, account_status)
+            VALUES (%s, %s, %s, %s, %s, %s);           
+            """,
+            row["name"], row["email"], row["username"], row["password"], birthdate, row["account_status"]
+)
+
+#Cars
+with open(BASE_DIR / "data"  / "car_data.csv", newline="", encoding="utf-8-sig") as file:
+    reader = csv.DictReader(file)
+    for row in reader:
+        db_manager.execute_query(
+            """
+
+            INSERT INTO lyfter_car_rental.cars (brand, model, manufacture_year, car_status)
+            VALUES (%s, %s, %s, %s);           
+            """,
+            row["brand"], row["model"], row["year"], row["status"]
+)
+
+#Rentals
 with open(BASE_DIR / "data"  / "cross_table.csv", newline="", encoding="utf-8-sig") as file:
     reader = csv.DictReader(file)
     for row in reader:
