@@ -36,11 +36,15 @@ class PgManager:
         print("Connection closed")
 
     def execute_query(self, query, *args):
-        self.cursor.execute(query, args)
-        if self.cursor.description:  # Check if the query returns any results
-            result = self.cursor.fetchall()
-        else:
-            result = None
-        self.connection.commit()
+        try:
+            self.cursor.execute(query, args)
+            if self.cursor.description:  # Check if the query returns any results
+                result = self.cursor.fetchall()
+            else:
+                result = None
+            self.connection.commit()
 
-        return result
+            return result
+        except Exception as error:
+            self.connection.rollback()  # clean the failed transaction
+            raise
