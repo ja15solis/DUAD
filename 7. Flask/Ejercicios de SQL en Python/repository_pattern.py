@@ -1,5 +1,6 @@
 from psycopg_connection import PgManager
 import re
+import psycopg2
 
 class UserRepository:
     def __init__(self, psycopg_connection):
@@ -142,11 +143,38 @@ class CarRepository:
                 raise ValueError(f"Invalid filter field: {key}. Valid fields are: {', '.join(car_fields)}")
         try:
             self.db_manager.execute_query(
-                """UPDATE lyfter_car_rental.cars SET car_status=%s WHERE id=%s;""",
-                car_record["car_status"], car_record["id"]
+                """
+                DO $$
+                DECLARE
+                    v_car_id INT := (%s);
+                    v_car_status VARCHAR(25) :=(%s) ;
+                BEGIN
+
+                    -- Check if the car is currently rented
+                    IF EXISTS (
+                        SELECT 1
+                        FROM lyfter_car_rental.rentals
+                        WHERE car_id = v_car_id
+                        AND rental_status = 'Active'
+                    ) THEN
+                        RAISE EXCEPTION 'Car not found or with active rental, the status of the car can not be changed.';
+                        RETURN;
+                    END IF;
+
+                    -- Complete the change
+                    UPDATE lyfter_car_rental.cars
+                    SET car_status = v_car_status
+                    WHERE id = v_car_id;
+
+                    RAISE NOTICE 'Status of the Car changed successfully.';
+                END; """,
+                car_record["id"], car_record["car_status"]
             )
             print("Car updated successfully")
             return True
+        except psycopg2.errors.RaiseException as e:
+            print("Error updating a car in the database: ", e)
+            raise ValueError(str(e))
         except Exception as error:
             print("Error updating a car in the database: ", error)
             raise error
@@ -236,6 +264,9 @@ class RentalsRepository:
             )
             print("Rental inserted successfully")
             return True
+        except psycopg2.errors.RaiseException as e:
+            print("Error inserting a rental into the database: ", e)
+            raise ValueError(str(e))
         except Exception as error:
             print("Error inserting a rental into the database: ", error)
             raise error
@@ -307,6 +338,9 @@ class RentalsRepository:
             )
             print("Rental completed successfully.")
             return True
+        except psycopg2.errors.RaiseException as e:
+            print("Error completing a rental in the database: ", e)
+            raise ValueError(str(e))
         except Exception as error:
             print("Error completing the rental in the database: ", error)
             raise error

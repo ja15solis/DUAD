@@ -13,139 +13,177 @@ db_manager = PgManager(
     user="postgres",
     password="postgres",
     host="localhost"
-    )
+)
 
 def is_valid_email(email: str) -> bool:
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return bool(re.match(pattern, email))
 
-def body_validation(table,request) -> dict:
-    user_required_fields = ['name','username','password','email', 'birthdate', 'account_status']
-    cars_required_fields = ['brand', 'model', 'manufacture_year', 'car_status']
-    rentals_required_fields = ['user_id', 'car_id']
-    cars_status_values = ['Available', 'Reserved', 'Maintenance']
-    user_status_values = ['Active', 'Inactive', 'Slow Payer', 'Blocked']
-
-    if table == "users":
-        required_fields = user_required_fields
-        status_values = user_status_values
-    elif table == "cars":
-        required_fields = cars_required_fields
-        status_values = cars_status_values
-    elif table == "rentals":
-        required_fields = rentals_required_fields
-        status_values = []
-
+def body_validation(required_fields, status_field, status_values) -> dict:
+    body = request.get_json()
+    if not body:
+        raise ValueError("Missing JSON body.")
     for field in required_fields:
-        if field not in request.json:
-            raise ValueError(f"The body is missing the {field} field")
-        if (field == "account_status" or field == "car_status") and request.json[field].title() not in status_values:
-            raise ValueError(f"The status must be one of the following: {status_values}.")
-        if field == "email" and not is_valid_email(request.json[field]):
-            raise ValueError(f"The email must be a valid email address.")
-        if not request.json[field]:
-            raise ValueError(f"The {field} must have a value.")
-
-    # return a dictionary with only the required fields and their values
-    new_record = {field: request.json[field] for field in required_fields}
-    return new_record
+        if field not in body:
+            raise ValueError(f"The body is missing the '{field}' field.")
+        if field == status_field and body[field].title() not in status_values:
+            raise ValueError(f"'{field}' must be one of: {status_values}.")
+        if field == "email" and not is_valid_email(body[field]):
+            raise ValueError("The email must be a valid email address.")
+        if not body[field] and body[field] != 0:
+            raise ValueError(f"'{field}' must have a value.")
+    return {field: body[field].title() if field == status_field else body[field] for field in required_fields}
 
 
-@app.route("/lyfter_car_rental/<table>", methods=["GET"])
-def get_records(table):
-    if table not in ["users", "cars", "rentals"]:
-        return jsonify({"message": "Invalid table name. Use 'users', 'cars', or 'rentals'."}), 400
+# Users
+@app.route("/lyfter_car_rental/users", methods=["GET"])
+def get_users():
     filters = request.args.to_dict()
     try:
-        if table == "users":
-            user_repo = UserRepository(db_manager)
-            result = user_repo.get_all(filters)
-            return jsonify(result), 200
-        elif table == "cars":
-            car_repo = CarRepository(db_manager)
-            result = car_repo.get_all(filters)
-            return jsonify(result), 200
-        elif table == "rentals":
-            rental_repo = RentalsRepository(db_manager)
-            result = rental_repo.get_all(filters)
-            return jsonify(result), 200
-    except Exception as e:
-        return jsonify({"message": f"Error retrieving records: {str(e)}"}), 500
-
-@app.route("/lyfter_car_rental/<table>", methods=["POST"])
-def create_record(table):
-    if table not in ["users", "cars", "rentals"]:
-        return jsonify({"message": "Invalid table name. Use 'users', 'cars', or 'rentals'."}), 400
-    try:
-        new_record = body_validation(table, request) #flask object request is passed to the body_validation function
-        if table == "users":
-            user_repo = UserRepository(db_manager)
-            result = user_repo.create(new_record)
-            if result is True:
-                return jsonify({"message": "User created successfully."}), 201
-        elif table == "cars":
-            car_repo = CarRepository(db_manager)
-            result = car_repo.create(new_record)
-            if result is True:
-                return jsonify({"message": "Car created successfully."}), 201
-        elif table == "rentals":
-            rental_repo = RentalsRepository(db_manager)
-            result = rental_repo.create(new_record)
-            if result is True:
-                return jsonify({"message": "Rental created successfully."}), 201
+        repo = UserRepository(db_manager)
+        result = repo.get_all(filters)
+        return jsonify(result), 200
     except ValueError as ve:
         return jsonify({"message": str(ve)}), 400
     except Exception as e:
-        return jsonify({"message": f"Error creating record: {str(e)}"}), 500
+        return jsonify({"message": f"Error retrieving users: {str(e)}"}), 500
 
-@app.route("/lyfter_car_rental/users/flag", methods=["PUT"])
-def flag_user():
+@app.route("/lyfter_car_rental/users", methods=["POST"])
+def create_user():
     try:
-        request_json = request.get_json()
-        user_repo = UserRepository(db_manager)
-        result = user_repo.flag_user(request_json)
-        if result is True:
-            return jsonify({"message": "User flagged successfully."}), 200
+        new_record = body_validation(
+            required_fields=['name', 'username', 'password', 'email', 'birthdate', 'account_status'],
+            status_field='account_status',
+            status_values=['Active', 'Inactive', 'Slow Payer', 'Blocked']
+        )
+        repo = UserRepository(db_manager)
+        repo.create(new_record)
+        return jsonify({"message": "User created successfully."}), 201
+    except ValueError as ve:
+        return jsonify({"message": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"message": f"Error creating user: {str(e)}"}), 500
+
+@app.route("/lyfter_car_rental/users/<int:id>", methods=["PUT"])
+def modify_user(id):
+    try:
+        body = request.get_json()
+        if not body:
+            raise ValueError("Missing JSON body.")
+        repo = UserRepository(db_manager)
+        repo.modify({"id": id, "account_status": body["account_status"]})
+        return jsonify({"message": "User modified successfully."}), 200
+    except ValueError as ve:
+        return jsonify({"message": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"message": f"Error modifying user: {str(e)}"}), 500
+
+@app.route("/lyfter_car_rental/users/<int:id>/flag", methods=["PUT"])
+def flag_user(id):
+    try:
+        repo = UserRepository(db_manager)
+        repo.flag_user({"id": id})
+        return jsonify({"message": "User flagged successfully."}), 200
     except ValueError as ve:
         return jsonify({"message": str(ve)}), 400
     except Exception as e:
         return jsonify({"message": f"Error flagging user: {str(e)}"}), 500
 
-@app.route("/lyfter_car_rental/<table>", methods=["PUT"])
-def modify_record(table):
-    if table not in ["users", "cars", "rentals"]:
-        return jsonify({"message": "Invalid table name. Use 'users', 'cars', or 'rentals'."}), 400
+
+# Cars
+@app.route("/lyfter_car_rental/cars", methods=["GET"])
+def get_cars():
+    filters = request.args.to_dict()
     try:
-        request_json = request.get_json()
-        if table == "users":
-            user_repo = UserRepository(db_manager)
-            result = user_repo.modify(request_json)
-            if result is True:
-                return jsonify({"message": "User modified successfully."}), 200
-        elif table == "cars":
-            car_repo = CarRepository(db_manager)
-            result = car_repo.modify(request_json)
-            if result is True:
-                return jsonify({"message": "Car modified successfully."}), 200
-        elif table == "rentals":
-            rental_repo = RentalsRepository(db_manager)
-            result = rental_repo.modify(request_json)
-            if result is True:
-                return jsonify({"message": "Rental modified successfully."}), 200
+        repo = CarRepository(db_manager)
+        result = repo.get_all(filters)
+        return jsonify(result), 200
     except ValueError as ve:
         return jsonify({"message": str(ve)}), 400
     except Exception as e:
-        return jsonify({"message": f"Error modifying record: {str(e)}"}), 500
+        return jsonify({"message": f"Error retrieving cars: {str(e)}"}), 500
 
-@app.route("/lyfter_car_rental/rentals/complete", methods=["PUT"])
-def complete_rental():
+@app.route("/lyfter_car_rental/cars", methods=["POST"])
+def create_car():
     try:
-        request_json = request.get_json()
-        rental_repo = RentalsRepository(db_manager)
-        result = rental_repo.complete_rental(request_json)
+        new_record = body_validation(
+            required_fields=['brand', 'model', 'manufacture_year', 'car_status'],
+            status_field='car_status',
+            status_values=['Available', 'Reserved', 'Maintenance']
+        )
+        repo = CarRepository(db_manager)
+        repo.create(new_record)
+        return jsonify({"message": "Car created successfully."}), 201
+    except ValueError as ve:
+        return jsonify({"message": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"message": f"Error creating car: {str(e)}"}), 500
 
-        if result is True:
-            return jsonify({"message": "Rental completed successfully."}), 200
+@app.route("/lyfter_car_rental/cars/<int:id>", methods=["PUT"])
+def modify_car(id):
+    try:
+        body = request.get_json()
+        if not body:
+            raise ValueError("Missing JSON body.")
+        repo = CarRepository(db_manager)
+        repo.modify({"id": id, "car_status": body["car_status"]})
+        return jsonify({"message": "Car modified successfully."}), 200
+    except ValueError as ve:
+        return jsonify({"message": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"message": f"Error modifying car: {str(e)}"}), 500
+
+
+# Rentals
+
+@app.route("/lyfter_car_rental/rentals", methods=["GET"])
+def get_rentals():
+    filters = request.args.to_dict()
+    try:
+        repo = RentalsRepository(db_manager)
+        result = repo.get_all(filters)
+        return jsonify(result), 200
+    except ValueError as ve:
+        return jsonify({"message": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"message": f"Error retrieving rentals: {str(e)}"}), 500
+
+@app.route("/lyfter_car_rental/rentals", methods=["POST"])
+def create_rental():
+    try:
+        new_record = body_validation(
+            required_fields=['user_id', 'car_id'],
+            status_field=None,
+            status_values=[]
+        )
+        repo = RentalsRepository(db_manager)
+        repo.create(new_record)
+        return jsonify({"message": "Rental created successfully."}), 201
+    except ValueError as ve:
+        return jsonify({"message": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"message": f"Error creating rental: {str(e)}"}), 500
+
+@app.route("/lyfter_car_rental/rentals/<int:id>", methods=["PUT"])
+def modify_rental(id):
+    try:
+        body = request.get_json()
+        if not body:
+            raise ValueError("Missing JSON body.")
+        repo = RentalsRepository(db_manager)
+        repo.modify({"id": id, "rental_status": body["rental_status"]})
+        return jsonify({"message": "Rental modified successfully."}), 200
+    except ValueError as ve:
+        return jsonify({"message": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"message": f"Error modifying rental: {str(e)}"}), 500
+
+@app.route("/lyfter_car_rental/rentals/<int:id>/complete", methods=["PUT"])
+def complete_rental(id):
+    try:
+        repo = RentalsRepository(db_manager)
+        repo.complete_rental({"id": id})
+        return jsonify({"message": "Rental completed successfully."}), 200
     except ValueError as ve:
         return jsonify({"message": str(ve)}), 400
     except Exception as e:
