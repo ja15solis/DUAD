@@ -1,0 +1,101 @@
+brand,model,year,status
+Toyota,Camry Hybrid,2008,Available
+Aston Martin,Vanquish S,2006,Available
+Subaru,Outback,2007,Available
+Mitsubishi,Outlander,2003,Reserved
+Pontiac,Sunbird,1990,Available
+GMC,Savana 2500,1998,Rented
+Acura,Legend,1995,Available
+Volvo,XC70,2005,Available
+Dodge,Ram Van 3500,1998,Rented
+Isuzu,Hombre,2000,Available
+Nissan,GT-R,2012,Rented
+Mercury,Grand Marquis,1997,Available
+Chevrolet,S10,1995,Rented
+Dodge,Ram 1500,2001,Available
+Infiniti,G,2004,Rented
+Maybach,Landaulet,2011,Rented
+Ford,Expedition,2008,Available
+Chevrolet,Express 2500,1999,Reserved
+Audi,80,1991,Maintenance
+Suzuki,Swift,1997,Available
+Bentley,Azure,2008,Available
+Volvo,XC70,2010,Rented
+Mazda,Mazda3,2011,Reserved
+Nissan,Altima,2000,Rented
+Maybach,62,2004,Rented
+Maserati,Biturbo,1984,Reserved
+MG,MGB,1977,Rented
+Volvo,S70,1999,Available
+Kia,Sedona,2012,Available
+Volkswagen,Touareg 2,2009,Available
+Mitsubishi,Outlander,2011,Available
+Toyota,Land Cruiser,2013,Rented
+Hyundai,Accent,2003,Reserved
+Ford,Five Hundred,2005,Available
+Lotus,Exige,2008,Maintenance
+Saturn,L-Series,2005,Available
+Mercedes-Benz,W201,1991,Available
+Toyota,Camry,1992,Rented
+Mercedes-Benz,W201,1993,Rented
+Nissan,Maxima,1995,Rented
+Honda,Accord,2002,Available
+Pontiac,Vibe,2005,Maintenance
+Audi,A6,2007,Available
+Nissan,NX,1992,Rented
+Geo,Prizm,1995,Rented
+Lexus,IS,2001,Rented
+Ford,Crown Victoria,2003,Rented
+Lamborghini,Aventador,2012,Rented
+GMC,1500,1998,Reserved
+Mitsubishi,Eclipse,2003,Rented
+Land Rover,Discovery,1998,Reserved
+Audi,A8,2007,Available
+Volvo,C70,2002,Rented
+Ferrari,612 Scaglietti,2007,Rented
+Jaguar,X-Type,2006,Rented
+Dodge,Ram 3500,2008,Available
+Jeep,Patriot,2010,Rented
+GMC,Sierra 2500,2009,Rented
+Hyundai,Elantra,1997,Rented
+Toyota,Avalon,2010,Available
+Subaru,Legacy,2002,Available
+Porsche,928,1991,Rented
+Mitsubishi,Galant,2006,Available
+Lotus,Esprit,1995,Rented
+Nissan,Pathfinder,1994,Rented
+Saturn,VUE,2006,Available
+Chevrolet,Impala,2003,Available
+Nissan,Sentra,2008,Rented
+Ford,Edge,2011,Available
+Pontiac,Torrent,2007,Available
+Infiniti,QX,2000,Maintenance
+Jeep,Cherokee,1992,Reserved
+GMC,Sierra 3500,2010,Available
+Volvo,S90,1998,Rented
+Pontiac,Grand Am,1993,Available
+Suzuki,Grand Vitara,2009,Available
+Dodge,Stratus,2005,Available
+Mazda,626,2002,Available
+Pontiac,Firebird,1996,Reserved
+Dodge,Dakota,1993,Maintenance
+GMC,Sierra 1500,2011,Reserved
+Pontiac,GTO,1968,Maintenance
+Ford,Thunderbird,1995,Reserved
+Ford,Ranger,2000,Rented
+Pontiac,Sunfire,1999,Available
+Land Rover,Discovery,2010,Rented
+Pontiac,LeMans,1992,Available
+Toyota,Yaris,2011,Available
+Mercedes-Benz,W201,1993,Available
+Audi,R8,2011,Rented
+Lincoln,Navigator L,2012,Rented
+Chevrolet,Corvette,1954,Rented
+Volvo,V90,1998,Available
+Mercedes-Benz,SL-Class,2002,Available
+Land Rover,Range Rover,2002,Available
+Chevrolet,TrailBlazer,2003,Rented
+Audi,A3,2009,Maintenance
+Nissan,350Z,2003,Available
+Mercedes-Benz,190E,1992,Rented
+Chevrolet,Suburban 2500,2010,Rented

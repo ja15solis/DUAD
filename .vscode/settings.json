@@ -6,10 +6,9 @@
             "server": "localhost",
             "port": 5432,
             "driver": "PostgreSQL",
-            "name": "postgres",
+            "name": "Javier Desktop",
             "database": "postgres",
-            "username": "postgres",
-            "password": "Imperial0515"
+            "username": "postgres"
         }
     ]
 }
