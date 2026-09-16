@@ -30,6 +30,10 @@ class User(Base):
         return session.query(cls).filter_by(id=user_id).first()
 
     @classmethod
+    def get_all_users(cls, session: Session):
+        return session.query(cls).all()
+
+    @classmethod
     def update_user(cls, session: Session, user_id: int, new_name: str):
         user = session.query(cls).filter_by(id=user_id).first()
         if user:
@@ -61,6 +65,10 @@ class Address(Base):
     @classmethod
     def get_address(cls, session: Session, address_id: int):
         return session.query(cls).filter_by(id=address_id).first()
+
+    @classmethod
+    def get_all_addresses(cls, session: Session):
+        return session.query(cls).all()
 
     @classmethod
     def update_address(cls, session: Session, address_id: int, new_address: str):
@@ -99,6 +107,10 @@ class Car(Base):
     def get_car(cls, session: Session, car_id: int):
         return session.query(cls).filter_by(id=car_id).first()
 
+    @classmethod
+    def get_all_cars(cls, session: Session):
+        return session.query(cls).all()
+    
     @classmethod
     def update_car(cls, session: Session, car_id: int, new_year: int, new_model: str, new_brand: str):
         car = session.query(cls).filter_by(id=car_id).first()
@@ -144,13 +156,13 @@ class Car(Base):
             session.delete(car)
             session.commit()
 
-# Used to drop all tables and create them again, for changing the schema.
-Base.metadata.drop_all(engine)
-Base.metadata.create_all(engine)
+# # Used to drop all tables and create them again, for changing the schema.
+# Base.metadata.drop_all(engine)
+# Base.metadata.create_all(engine)
 
 
 #Validates if the tables already exist, if not, it creates them.
-# Base.metadata.create_all(engine, checkfirst=True) 
+Base.metadata.create_all(engine, checkfirst=True) 
 
 with Session(engine) as session:
     #Creating a user with an address
