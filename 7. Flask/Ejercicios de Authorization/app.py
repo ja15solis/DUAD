@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 
 from user_repository import user_repository
 from product_repository import product_repository
+from invoice_repository import invoice_repository, ProductDuplicateError, ProductNotFoundError, ProductNotAvailableError
 from jwt_manager import JWTManager
 from sqlalchemy.exc import IntegrityError
 from pathlib import Path
@@ -70,34 +71,68 @@ def body_validation(body:dict,  fields, partial: bool = False) -> dict:
         missing = allowed - body.keys()
         if missing:
             raise ValueError(f"Missing required fields: {missing}")
+    #for purchase the items must be a list of dictionaries with product_id and quantity, both positive integers
+    if "items" in body:
+        if not isinstance(body["items"], list):
+            raise ValueError("'items' must be a list of dictionaries.")
+        elif not body["items"]:
+            raise ValueError("'items' list cannot be empty.")
+        #loop through each item in the list and validate its structure and values
+        for item in body["items"]:
+            if not isinstance(item, dict):
+                raise ValueError("Each item in 'items' must be a dictionary.")
+            
+            required_item_fields = {"product_id", "quantity"}
+            missing_item_fields = required_item_fields - item.keys()
+            unexpected_items = item.keys() - required_item_fields
 
-    for field in ("price", "quantity"):
-        if field in body:
-            value = body[field]
-            if isinstance(value, bool):
-                raise ValueError(f"'{field}' must be a number, not a boolean.")
-            if field == "price" and not isinstance(value, (int, float)):
-                raise ValueError(f"'{field}' must be a number.")
-            if field == "quantity" and not isinstance(value, int):
-                raise ValueError(f"'{field}' must be an integer.")
-            if value < 0:
-                raise ValueError(f"'{field}' must be a non-negative number.")
-    for field in ("name", "date"):
-        if field in body:
-            value = body[field]
-            if not isinstance(value, str):
-                raise ValueError(f"'{field}' must be a string.")
-            if field == "date":
-                try:
-                    datetime.strptime(value, "%Y-%m-%d")
-                except ValueError:
-                    raise ValueError(f"'{field}' must be in YYYY-MM-DD format.")
+            if unexpected_items:
+                raise ValueError(f"Unexpected fields provided: {unexpected_items}")
+                    
+            if not partial:
+                if missing_item_fields:
+                    raise ValueError(f"Missing required fields: {missing_item_fields}")
+            
+            for field in ("quantity", "product_id"):
+                if field in item:
+                    value = item[field]
+                    if isinstance(value, bool):
+                        raise ValueError(f"'{field}' must be a number, not a boolean.")
+                    if field in ("quantity", "product_id") and not isinstance(value, int):
+                        raise ValueError(f"'{field}' must be an integer.")
+                    if value < 1:
+                        raise ValueError(f"'{field}' must be a positive number.")
+        return body["items"]
+                
+    #for editing the product the price and quantity can be 0 but not negative, and name and date must be string
+    else: 
+        for field in ("price", "quantity"):
+            if field in body:
+                value = body[field]
+                if isinstance(value, bool):
+                    raise ValueError(f"'{field}' must be a number, not a boolean.")
+                if field == "price" and not isinstance(value, (int, float)):
+                    raise ValueError(f"'{field}' must be a number.")
+                if field == "quantity" and not isinstance(value, int):
+                    raise ValueError(f"'{field}' must be an integer.")
+                if value < 0:
+                    raise ValueError(f"'{field}' must be a non-negative number.")
+        for field in ("name", "date"):
+            if field in body:
+                value = body[field]
+                if not isinstance(value, str):
+                    raise ValueError(f"'{field}' must be a string.")
+                if field == "date":
+                    try:
+                        datetime.strptime(value, "%Y-%m-%d")
+                    except ValueError:
+                        raise ValueError(f"'{field}' must be in YYYY-MM-DD format.")
 
-    for field, value in body.items():
-        if value is None or (isinstance(value, str) and not value.strip()):
-            raise ValueError(f"'{field}' must have a value.")
+        for field, value in body.items():
+            if value is None or (isinstance(value, str) and not value.strip()):
+                raise ValueError(f"'{field}' must have a value.")
 
-    return {k: body[k] for k in fields if k in body}
+        return {k: body[k] for k in fields if k in body}
 
 #Other functions
 def serialize_product(product):
@@ -107,6 +142,14 @@ def serialize_product(product):
         "price": float(product.price),
         "quantity": product.quantity,
         "date": product.date.isoformat()
+    }
+
+def serialize_invoice(invoice):
+    return {
+        "id": invoice.id,
+        "user_id": invoice.user_id,
+        "amount": float(invoice.amount),
+        "date": invoice.date.isoformat()
     }
 
 #endpoints  
@@ -144,7 +187,7 @@ def login():
     access_token, refresh_token = jwt_manager.generate_tokens(user.id)
     return jsonify(access_token=access_token, refresh_token=refresh_token), 200
 
-@app.route("/me")
+@app.route("/me", methods=["GET"])
 @validate_token
 def me(user_id):
     user = user_repository.get_by_id(user_id)
@@ -219,6 +262,33 @@ def list_product(user_id, product_id):
     if not product:
         return jsonify(error="Product not found"), 404
     return jsonify(serialize_product(product)), 200
+
+@app.route("/invoices", methods=["GET"])
+@validate_token
+def list_invoices(user_id):
+    invoices = invoice_repository.get_by_user_id(user_id)
+    return jsonify([
+        serialize_invoice(invoice)
+        for invoice in invoices
+    ]), 200
+
+@app.route("/invoices", methods=["POST"])
+@validate_token
+def create_invoice(user_id):
+    try:
+        items = body_validation(request.get_json(silent=True), ["items"])
+    except ValueError as e:
+        return jsonify(error=str(e)), 400
+
+    try:
+        invoice = invoice_repository.create_purchase(user_id, items)
+    except ProductNotFoundError as e:
+        return jsonify(error=str(e)), 404
+    except ProductNotAvailableError as e:
+        return jsonify(error=str(e)), 409
+    except ProductDuplicateError as e:
+        return jsonify(error=str(e)), 400
+    return jsonify(serialize_invoice(invoice)), 201
 
 
 if __name__ == "__main__":
